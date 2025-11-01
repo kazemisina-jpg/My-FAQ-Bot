@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>چت‌بات FAQ</title>
+  <style>
+    body { font-family: sans-serif; direction: rtl; text-align: center; margin-top: 50px; }
+    #chatbox { width: 80%; margin: auto; border: 1px solid #aaa; padding: 20px; border-radius: 10px; }
+    input { width: 70%; padding: 10px; }
+    button { padding: 10px 20px; }
+    #answer { margin-top: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>ربات پاسخگوی سوالات متداول</h2>
+  <div id="chatbox">
+    <input id="question" type="text" placeholder="سوال خود را بنویسید...">
+    <button onclick="ask()">بپرس</button>
+    <div id="answer"></div>
+  </div>
+
+  <script>
+    async function ask() {
+      const q = document.getElementById('question').value;
+      const res = await fetch('faq.json');
+      const faqs = await res.json();
+      const match = faqs.find(f => q.includes(f.q));
+      document.getElementById('answer').innerText = match ? match.a : 'متاسفم، پاسخی پیدا نشد.';
+    }
+  </script>
+</body>
+</html>
