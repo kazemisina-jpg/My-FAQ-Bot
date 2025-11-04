@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ربات پاسخگو - نسخهٔ هوشمند</title>
+  <style>
+    body { font-family: Tahoma, Arial; background:#f7f7f9; margin:0; padding:20px; direction:rtl; }
+    .container { max-width:720px; margin:0 auto; background:white; border-radius:8px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+    h1 { margin-top:0; text-align:center; }
+    #chat { height:360px; border:1px solid #e0e0e0; padding:10px; overflow:auto; background:#fff; }
+    .msg { margin:8px 0; }
+    .user { text-align:left; }
+    .bot { text-align:right; color:#0b6; }
+    .controls { display:flex; gap:8px; margin-top:10px; }
+    input[type="text"]{ flex:1; padding:8px; font-size:15px; }
+    button{ padding:8px 12px; font-size:15px; cursor:pointer; }
+    .small { font-size:13px; color:#666; }
+    .source { font-size:12px; color:#444; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ربات پاسخگوی سازمان (نسخهٔ هوشمند)</h1>
+    <div id="chat"></div>
+
+    <div class="controls">
+      <input id="qinput" type="text" placeholder="سوالتان را بنویسید..." />
+      <button id="send">ارسال</button>
+      <button id="sample">سوال نمونه</button>
+    </div>
+    <p class="small">این نسخه از API هوش مصنوعی استفاده می‌کند. برای کارکرد صحیح باید کلید API را در Vercel با نام OPENAI_API_KEY اضافه کنید.</p>
+  </div>
+
+<script>
+  const chat = document.getElementById('chat');
+  const input = document.getElementById('qinput');
+
+  function addMessage(text, who='bot', source=null) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
+    div.innerHTML = (who === 'user' ? '<b>شما:</b> ' : '<b>ربات:</b> ') + text;
+    if (source) {
+      const s = document.createElement('div');
+      s.className = 'source';
+      s.textContent = 'منبع: ' + source;
+      div.appendChild(s);
+    }
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  document.getElementById('send').onclick = async () => {
+    const q = input.value.trim();
+    if (!q) return;
+    addMessage(q, 'user');
+    input.value = '';
+    addMessage('در حال پردازش...', 'bot');
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ question: q })
+      });
+      const data = await res.json();
+      // remove the "در حال پردازش..." message (last bot)
+      const msgs = document.querySelectorAll('#chat .msg.bot');
+      if (msgs.length) msgs[msgs.length-1].remove();
+
+      if (data.error) {
+        addMessage('خطا: ' + data.error, 'bot');
+      } else {
+        addMessage(data.answer, 'bot', data.source || null);
+
+        // show feedback buttons
+        const fbDiv = document.createElement('div');
+        fbDiv.style.marginTop = '6px';
+        fbDiv.innerHTML = '<button id="fb_yes">مفید بود</button> <button id="fb_no">مفید نبود</button>';
+        chat.appendChild(fbDiv);
+        document.getElementById('fb_yes').onclick = () => sendFeedback(q, data.answer, true);
+        document.getElementById('fb_no').onclick = () => sendFeedback(q, data.answer, false);
+      }
+    } catch (e) {
+      addMessage('خطا در ارتباط با سرور.', 'bot');
+      console.error(e);
+    }
+  };
+
+  document.getElementById('sample').onclick = () => {
+    input.value = 'ساعات کاری اداره چیست؟';
+  };
+
+  async function sendFeedback(question, answer, helpful) {
+    try {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ question, answer, helpful })
+      });
+      alert('بازخورد ثبت شد. ممنون!');
+    } catch (e) {
+      alert('خطا در ثبت بازخورد');
+    }
+  }
+</script>
+</body>
+</html>
