@@ -1,7 +1,7 @@
 راهنما - ربات پاسخگوی هوشمند (نسخه ساده RAG + OpenAI)
 
 فایل‌های این پروژه:
-- index.html         -> رابط کاربری (فرانت‌اند)
+- index.html         -> رابط  کاربری (فرانت‌اند)
 - faq.json           -> پایگاه داده اولیه سوالات و پاسخ‌ها (قابل ویرایش)
 - api/chat.js        -> تابع سرور (Vercel Serverless) که RAG ساده + OpenAI ChatCompletion را اجرا می‌کند
 - api/feedback.js    -> ثبت بازخورد کاربران (ذخیره محلی در فایل feedbacks.json در محیط اجرایی - برای سرورهای ephemeral توصیه می‌شود به Google Sheets یا DB منتقل شود)
